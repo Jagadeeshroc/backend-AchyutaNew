@@ -20,15 +20,46 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
+        
+        // Input validation
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
 
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+        // Database query with error handling
+        let user;
+        try {
+            user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return res.status(500).json({ error: 'Database error' });
+        }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
 
-    res.json({ success: true, token: user.id, userId: user.id });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Consider using JWT instead of just user.id
+        res.json({ 
+            success: true, 
+            token: user.id, // Consider using JWT here
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;
