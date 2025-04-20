@@ -16,11 +16,18 @@ require('dotenv').config();
 
 // Middleware
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173/',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+        process.env.FRONTEND_URL,
+        'https://achyuta-future-of-hiring.vercel.app',
+        'http://localhost:5173'
+    ].filter(Boolean), // Removes any undefined values
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 app.use(express.json());
 
 // Routes
