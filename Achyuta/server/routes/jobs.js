@@ -27,7 +27,7 @@ router.get('/', (req, res) => {
     res.json(jobs);
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:jobId', (req, res) => {
     const job = db.prepare(`
         SELECT j.*, u.username as posted_by_username 
         FROM jobs j JOIN users u ON j.posted_by = u.id WHERE j.id = ?
@@ -36,7 +36,7 @@ router.get('/:id', (req, res) => {
     res.json(job);
 });
 
-router.put('/:id', authenticate, (req, res) => {
+router.put('/:jobId', authenticate, (req, res) => {
     const { title, company, location, description, requirements, salary } = req.body;
     const { id } = req.params;
 
@@ -49,7 +49,7 @@ router.put('/:id', authenticate, (req, res) => {
     res.json({ success: true, message: 'Job updated successfully' });
 });
 
-router.delete('/:id', authenticate, (req, res) => {
+router.delete('/:jobId', authenticate, (req, res) => {
     const result = db.prepare('DELETE FROM jobs WHERE id = ?').run(req.params.id);
     if (result.changes === 0) return res.status(404).json({ error: 'Job not found' });
     res.json({ success: true, message: 'Job deleted' });
