@@ -14,7 +14,7 @@ require('dotenv').config();
 
 // Middleware
 app.use(cors({
-    origin: 'https://jagachyuta-future-of-hiring-vnd2.vercel.app',
+    origin: 'achyuta-future-of-hiring.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
