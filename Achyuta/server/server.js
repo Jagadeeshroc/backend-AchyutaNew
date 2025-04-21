@@ -12,11 +12,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 require('dotenv').config();
 
-// Middleware
+// Middleware - Fixed CORS configuration
 app.use(cors({
-    origin: 'achyuta-future-of-hiring.vercel.app',
-     'https://jagachyuta-future-of-hiring-vnd2.vercel.app',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+        'https://achyuta-future-of-hiring.vercel.app',
+        'https://jagachyuta-future-of-hiring-vnd2.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
