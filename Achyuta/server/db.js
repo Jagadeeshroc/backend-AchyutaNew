@@ -1,11 +1,8 @@
-// server/db.js
-const path = require('path');
-const Database = require('better-sqlite3');
+// db.js
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database(':memory:'); // or your database file
 
-const db = new Database(path.join(__dirname, 'userInfo.db'));
-
-// Initialize database tables
-const initDB = () => {
+function initDB() {
     db.prepare(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
@@ -14,18 +11,21 @@ const initDB = () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`).run();
 
-    db.prepare(`CREATE TABLE IF NOT EXISTS jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT,
-        company TEXT,
-        location TEXT,
-        description TEXT,
-        requirements TEXT,
-        salary TEXT,
-        posted_by INTEGER,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(posted_by) REFERENCES users(id)
-    )`).run();
+    db.run(`
+        CREATE TABLE IF NOT EXISTS jobs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          company TEXT NOT NULL,
+          location TEXT,
+          description TEXT,
+          requirements TEXT,
+          salary TEXT,
+          posted_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          status TEXT DEFAULT 'applied', -- Add status column with default value
+          FOREIGN KEY (posted_by) REFERENCES users(id)
+        )
+      `);
 
     db.prepare(`CREATE TABLE IF NOT EXISTS reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
