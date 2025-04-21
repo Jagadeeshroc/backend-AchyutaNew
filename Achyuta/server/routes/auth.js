@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const db = require('../db');
 
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
@@ -58,7 +59,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Compare password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Incorrect password' });
