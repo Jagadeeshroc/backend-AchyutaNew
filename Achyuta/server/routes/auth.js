@@ -1,11 +1,8 @@
-// server/routes/auth.js
 const express = require('express');
-const bcrypt = require('bcrypt');
-const { db } = require('../db');
-
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 
-// Register Route
+// REGISTER ROUTE
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -24,8 +21,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Username or email already exists' });
     }
 
-    // Hash password and insert into DB
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert user into DB
     const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
 
     res.status(201).json({ success: true, userId: result.lastInsertRowid });
@@ -36,7 +35,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login Route
+
+// LOGIN ROUTE
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -46,26 +46,33 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Find user in DB
+    // Retrieve user from DB
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+
     if (!user) {
       return res.status(400).json({ error: 'User not found' });
     }
 
-    // Ensure stored hash exists
     if (!user.password) {
-      console.error('Missing hashed password in DB for user:', username);
-      return res.status(500).json({ error: 'Server error: no stored password' });
+      return res.status(500).json({ error: 'Stored password is missing' });
     }
 
-    // Compare passwords
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    // Compare password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(400).json({ error: 'Incorrect password' });
     }
 
     // Success
-    res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username, email: user.email } });
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
+    });
 
   } catch (err) {
     console.error('Login error:', err);

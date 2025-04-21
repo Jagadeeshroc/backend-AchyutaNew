@@ -1,6 +1,7 @@
 // db.js
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(':memory:'); // or your database file
+const db = new sqlite3.Database('./userInfo.db'); // Save to disk
+ // or your database file
 
 function initDB() {
     db.prepare(`CREATE TABLE IF NOT EXISTS users (
