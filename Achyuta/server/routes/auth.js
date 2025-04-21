@@ -1,41 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const { db } = require('../db'); // Make sure db is imported correctly
 
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
     try {
-      const { username, email, password } = req.body;
+      const username = req.body.username.trim();
+      const email = req.body.email.trim();
+      const password = req.body.password;
   
-      // Validation
+      console.log("Registering:", { username, email, password });
+  
       if (!username || !email || !password) {
         return res.status(400).json({ error: 'All fields are required' });
       }
+  
       if (password.length < 8) {
         return res.status(400).json({ error: 'Password must be at least 8 characters' });
       }
   
-      // Check if user or email already exists
-      const existingUser = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, email);
+      console.log("Checking if user exists:", username, email);
+      const stmt = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?');
+      const existingUser = stmt.get(username, email);
+      console.log("Found user:", existingUser);
+  
       if (existingUser) {
         return res.status(400).json({ error: 'Username or email already exists' });
       }
   
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
   
-      // Insert user into DB
       const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
   
       res.status(201).json({ success: true, userId: result.lastInsertRowid });
   
     } catch (err) {
-      console.error('Register error:', err);  // This will log the error details on the backend
+      console.error('Error in /auth/register:', err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
   
+
 // LOGIN ROUTE
 router.post('/login', async (req, res) => {
   try {
