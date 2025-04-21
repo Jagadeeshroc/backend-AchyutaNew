@@ -5,38 +5,37 @@ const db = require('../db');
 
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-
-    // Validation
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+    try {
+      const { username, email, password } = req.body;
+  
+      // Validation
+      if (!username || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters' });
+      }
+  
+      // Check if user or email already exists
+      const existingUser = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, email);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username or email already exists' });
+      }
+  
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Insert user into DB
+      const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
+  
+      res.status(201).json({ success: true, userId: result.lastInsertRowid });
+  
+    } catch (err) {
+      console.error('Register error:', err);  // This will log the error details on the backend
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    }
-
-    // Check if user or email already exists
-    const existingUser = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, email);
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username or email already exists' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Insert user into DB
-    const result = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)').run(username, email, hashedPassword);
-
-    res.status(201).json({ success: true, userId: result.lastInsertRowid });
-
-  } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
+  });
+  
 // LOGIN ROUTE
 router.post('/login', async (req, res) => {
   try {
